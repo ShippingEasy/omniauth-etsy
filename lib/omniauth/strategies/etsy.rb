@@ -22,7 +22,9 @@ module OmniAuth
           'first_name' => profile_info['first_name'],
           'last_name' => profile_info['last_name'],
           'image' => profile_info['image_url_75x75'],
-          'profile' => profile_info
+          'profile' => profile_info,
+          'shop_id' => shop['shop_id'],
+          'shop_name' => shop['shop_name']
         }
       end
 
@@ -61,6 +63,13 @@ module OmniAuth
         raise ::Timeout::Error
       rescue ::OAuth::Error => e
         raise e.response.inspect
+      end
+
+      def shop
+        # while the api allows multiple shops per user, the UI seems to support
+        # only one shop per user; grabbing first record
+        shops = MultiJson.decode(@access_token.get('/shops/__SELF__?includes=Profile').body)['results']
+        shops[0]
       end
 
     end
