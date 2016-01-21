@@ -11,7 +11,8 @@ module OmniAuth
         :authorize_url      => "https://www.etsy.com/oauth/signin"
       }
 
-      uid { user_hash['user_id'] }
+      # ShippingEasy relies on shop_id, rather than user_id, as an external id
+      uid { shop['shop_id'] }
 
       info do
         {
@@ -22,9 +23,7 @@ module OmniAuth
           'first_name' => profile_info['first_name'],
           'last_name' => profile_info['last_name'],
           'image' => profile_info['image_url_75x75'],
-          'profile' => profile_info,
-          'shop_id' => shop['shop_id'],
-          'shop_name' => shop['shop_name']
+          'profile' => profile_info
         }
       end
 
