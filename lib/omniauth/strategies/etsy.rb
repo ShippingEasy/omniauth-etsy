@@ -11,7 +11,8 @@ module OmniAuth
         :authorize_url      => "https://www.etsy.com/oauth/signin"
       }
 
-      uid { user_hash['user_id'] }
+      # ShippingEasy relies on shop_id, rather than user_id, as an external id
+      uid { shop['shop_id'] }
 
       info do
         {
@@ -61,6 +62,13 @@ module OmniAuth
         raise ::Timeout::Error
       rescue ::OAuth::Error => e
         raise e.response.inspect
+      end
+
+      def shop
+        # while the api allows multiple shops per user, the UI seems to support
+        # only one shop per user; grabbing first record
+        shops = MultiJson.decode(@access_token.get('/shops/__SELF__?includes=Profile').body)['results']
+        shops[0]
       end
 
     end
