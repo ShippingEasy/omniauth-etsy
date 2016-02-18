@@ -12,7 +12,7 @@ module OmniAuth
       }
 
       # ShippingEasy relies on shop_id, rather than user_id, as an external id
-      uid { shop['shop_id'] }
+      uid { shop_id }
 
       info do
         {
@@ -64,13 +64,24 @@ module OmniAuth
         raise e.response.inspect
       end
 
-      def shop
-        # while the api allows multiple shops per user, the UI seems to support
-        # only one shop per user; grabbing first record
-        shops = MultiJson.decode(@access_token.get('/shops/__SELF__?includes=Profile').body)['results']
-        shops[0]
+      def shop_id
+        @shop_id ||= shop && shop['shop_id']
       end
 
+      def shop
+        @shop ||= user_shop
+      end
+
+      def user_shop
+        # while the api allows multiple shops per user, the UI seems to support
+        # only one shop per user; grabbing first record
+        # https://www.etsy.com/developers/documentation/reference/shop#method_findallusershops
+        user_id = raw_info['user_id']
+        response = @access_token.get("/users/#{user_id}/shops")
+        return unless response && response.code.to_s != '404'
+        shops = MultiJson.decode(response.body)['results']
+        shops.first
+      end
     end
   end
 end
