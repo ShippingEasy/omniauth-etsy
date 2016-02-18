@@ -76,11 +76,14 @@ module OmniAuth
         # while the api allows multiple shops per user, the UI seems to support
         # only one shop per user; grabbing first record
         # https://www.etsy.com/developers/documentation/reference/shop#method_findallusershops
-        user_id = raw_info['user_id']
-        response = @access_token.get("/users/#{user_id}/shops")
+        response = @access_token.get('/users/__SELF__/shops')
         return unless response && response.code.to_s != '404'
-        shops = MultiJson.decode(response.body)['results']
-        shops.first
+        begin
+          shops = MultiJson.decode(response.body)['results']
+          shops.first
+        rescue # In the case the user has no shop/response is invalid
+          nil
+        end
       end
     end
   end
